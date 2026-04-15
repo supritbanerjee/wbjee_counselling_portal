@@ -1,0 +1,8 @@
+Dept_ID,Department_Name,Full_Name,Total_Seats,GEN_Seats,SC_Seats,ST_Seats,OBC_A_Seats,OBC_B_Seats,Closing_Rank_Last_Year,Min_WBJEE_Marks
+CSE,Computer Science & Engineering,Bachelor of Technology in CSE,60,33,12,6,6,3,890,155
+IT,Information Technology,Bachelor of Technology in IT,60,33,12,6,6,3,1200,145
+ECE,Electronics & Communication Engineering,Bachelor of Technology in ECE,60,33,12,6,6,3,1450,138
+ETCE,Electronics & Telecommunication Engineering,Bachelor of Technology in ETCE,60,33,12,6,6,3,1600,134
+EE,Electrical Engineering,Bachelor of Technology in EE,60,33,12,6,6,3,1900,128
+ME,Mechanical Engineering,Bachelor of Technology in ME,60,33,12,6,6,3,2200,122
+CE,Civil Engineering,Bachelor of Technology in CE,60,33,12,6,6,3,2600,115

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WBJEE Counselling Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--surface:#0d1117;--card:#111827;--border:#1e2a3a;--border2:#263347;--accent:#f59e0b;--accent2:#3b82f6;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;--pink:#ec4899;--cyan:#06b6d4;--text:#e2e8f0;--muted:#4b6080;--subtle:#131c2a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh}
+.bg-grid{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(245,158,11,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,.03) 1px,transparent 1px);background-size:48px 48px}
+.bg-glow{position:fixed;width:500px;height:500px;border-radius:50%;filter:blur(120px);opacity:.15;pointer-events:none}
+.glow1{background:var(--accent);top:-200px;left:-200px}
+.glow2{background:var(--accent2);bottom:-200px;right:-200px}
+
+/* UPLOAD */
+#uploadScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;position:relative}
+.upload-logo{font-family:'Playfair Display',serif;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:48px}
+.upload-logo span{color:var(--accent)}
+.upload-headline{font-family:'Playfair Display',serif;font-size:clamp(34px,6vw,62px);font-weight:900;text-align:center;line-height:1.05;margin-bottom:12px;color:#fff}
+.upload-headline em{color:var(--accent);font-style:italic}
+.upload-sub{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.5px;margin-bottom:52px;max-width:440px;line-height:1.7}
+.upload-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:620px;margin-bottom:28px}
+@media(max-width:520px){.upload-cards{grid-template-columns:1fr}}
+.upload-card{background:var(--card);border:1.5px dashed var(--border2);padding:30px 22px;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s,background .2s,transform .2s;position:relative;overflow:hidden;text-align:center}
+.upload-card:hover{border-color:var(--accent);background:#15202f;transform:translateY(-2px)}
+.upload-card.done{border-style:solid;border-color:var(--green)}
+.upload-card input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-card-icon{font-size:34px;line-height:1}
+.upload-card-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.upload-card-sub{font-size:10px;color:var(--muted);line-height:1.6}
+.upload-card-fname{font-size:11px;color:var(--green);word-break:break-all}
+.run-btn{background:var(--accent);border:none;color:#000;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:17px 44px;cursor:pointer;transition:opacity .2s,transform .2s}
+.run-btn:hover:not(:disabled){opacity:.87;transform:translateY(-1px)}
+.run-btn:disabled{opacity:.3;cursor:not-allowed}
+.upload-hint{font-size:10px;color:var(--muted);margin-top:14px;text-align:center;line-height:1.8}
+.req-box{margin-top:36px;background:var(--subtle);border:1px solid var(--border);padding:20px 22px;max-width:620px;width:100%}
+.req-box h4{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.req-cols-grid{display:flex;gap:24px;flex-wrap:wrap}
+.req-group-title{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.col-pills{display:flex;flex-wrap:wrap;gap:6px}
+.col-pill{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--accent);font-size:10px;padding:3px 9px;font-weight:600}
+.error-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);padding:12px 16px;font-size:12px;max-width:620px;width:100%;margin-top:14px}
+
+/* PROCESSING */
+#processingScreen{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-msg{font-size:12px;color:var(--muted);letter-spacing:1px}
+
+/* PORTAL */
+.portal-header{background:linear-gradient(135deg,#07090f 0%,#0d1a2e 50%,#07090f 100%);border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.ph-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(245,158,11,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,.04) 1px,transparent 1px);background-size:40px 40px}
+.ph-inner{max-width:1400px;margin:0 auto;padding:28px 32px;position:relative}
+.ph-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.portal-brand{font-family:'Playfair Display',serif;font-size:clamp(22px,4vw,40px);font-weight:900;color:#fff;line-height:1}
+.portal-brand span{color:var(--accent)}
+.ph-badges{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.round-badge{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--accent);font-size:10px;font-weight:700;letter-spacing:2px;padding:7px 14px;white-space:nowrap}
+.reset-btn{background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;cursor:pointer;transition:all .2s}
+.reset-btn:hover{border-color:var(--red);color:var(--red)}
+.ph-stats{display:flex;gap:24px;flex-wrap:wrap;margin-top:18px}
+.pstat{display:flex;flex-direction:column;gap:2px}
+.pstat-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--accent)}
+.pstat-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+
+.nav-wrap{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav-tabs{display:flex;max-width:1400px;margin:0 auto;padding:0 32px;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:14px 17px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{max-width:1400px;margin:0 auto;padding:28px 32px}
+.section{display:none;animation:fadeUp .3s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.section-title{font-family:'Playfair Display',serif;font-size:26px;color:#fff;margin-bottom:4px}
+.section-sub{font-size:11px;color:var(--muted);margin-bottom:24px;letter-spacing:.4px}
+
+/* stats */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);padding:18px}
+.stat-val{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:4px}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:6px}
+
+/* charts */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+@media(max-width:700px){.chart-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);padding:22px}
+.chart-title{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:18px}
+.bar-chart{display:flex;flex-direction:column;gap:9px}
+.bar-row{display:grid;grid-template-columns:54px 1fr 40px;gap:9px;align-items:center}
+.bar-row-label{font-size:10px;font-weight:700;color:var(--text)}
+.bar-track{height:20px;background:var(--subtle);overflow:hidden}
+.bar-fill{height:100%;display:flex;align-items:center;padding-left:7px;font-size:9px;font-weight:700;color:rgba(0,0,0,.75);transition:width 1s cubic-bezier(.16,1,.3,1)}
+.bar-count{font-size:11px;color:var(--muted);text-align:right}
+.donut-wrap{display:flex;align-items:center;gap:22px}
+.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.legend-dot{width:8px;height:8px;flex-shrink:0}
+.legend-label{font-size:11px;color:var(--text);flex:1}
+.legend-val{font-size:12px;font-weight:700}
+.pref-bars{display:flex;gap:10px;align-items:flex-end;height:80px}
+.pref-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.pref-bar-vert{width:100%;transition:height 1s cubic-bezier(.16,1,.3,1)}
+.pref-col-label{font-size:9px;color:var(--muted)}
+.pref-col-count{font-size:11px;font-weight:700;color:var(--text)}
+
+/* controls */
+.controls-bar{display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-select{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:9px 12px;outline:none;cursor:pointer}
+.filter-select:focus{border-color:var(--accent)}
+.filter-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.results-count{margin-left:auto;font-size:11px;color:var(--muted)}
+.results-count span{color:var(--accent)}
+
+/* table */
+.table-wrap{overflow-x:auto;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--subtle);border-bottom:1px solid var(--border)}
+th{padding:11px 14px;text-align:left;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--accent)}
+th.sorted{color:var(--accent)}
+tbody tr{border-bottom:1px solid rgba(30,42,58,.5);transition:background .12s}
+tbody tr:hover{background:rgba(245,158,11,.04)}
+td{padding:11px 14px;white-space:nowrap}
+
+.cat-badge{padding:3px 8px;font-size:9px;font-weight:700;letter-spacing:1px;display:inline-block}
+.cat-GEN{background:rgba(100,116,139,.2);color:#94a3b8;border:1px solid #334155}
+.cat-SC{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid #1d4ed8}
+.cat-ST{background:rgba(16,185,129,.15);color:#34d399;border:1px solid #065f46}
+.cat-OBC-A{background:rgba(139,92,246,.15);color:#c084fc;border:1px solid #7c3aed}
+.cat-OBC-B{background:rgba(244,114,182,.15);color:#f472b6;border:1px solid #9d174d}
+
+.sa{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3);padding:3px 9px;font-size:9px;font-weight:700;letter-spacing:1px;display:inline-block}
+.su{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:3px 9px;font-size:9px;font-weight:700;letter-spacing:1px;display:inline-block}
+
+.dept-tag{padding:3px 8px;font-size:9px;font-weight:700;letter-spacing:1px;border:1px solid;display:inline-block}
+.marks-bar-wrap{display:flex;align-items:center;gap:8px}
+.marks-bar{height:3px;background:var(--border);flex:1;min-width:44px}
+.marks-bar-fill{height:100%;background:var(--accent)}
+
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:18px;flex-wrap:wrap}
+.page-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;padding:7px 12px;cursor:pointer;transition:all .15s}
+.page-btn:hover{border-color:var(--accent);color:var(--accent)}
+.page-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.page-btn:disabled{opacity:.3;cursor:default}
+
+/* search */
+.search-hero{text-align:center;padding:44px 0 32px}
+.search-hero h2{font-family:'Playfair Display',serif;font-size:30px;color:#fff;margin-bottom:8px}
+.search-hero p{color:var(--muted);font-size:12px;margin-bottom:28px}
+.search-row{display:flex;max-width:500px;margin:0 auto}
+.search-input{flex:1;background:var(--card);border:1px solid var(--border);border-right:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;padding:14px 16px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--muted)}
+.search-btn{background:var(--accent);border:none;color:#000;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:14px 22px;cursor:pointer;white-space:nowrap}
+.search-btn:hover{opacity:.85}
+.sugg-wrap{max-width:500px;margin:0 auto;border:1px solid var(--border);background:var(--card);margin-top:-1px}
+.sugg-row{padding:11px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);font-size:12px;transition:background .12s}
+.sugg-row:last-child{border-bottom:none}
+.sugg-row:hover{background:rgba(245,158,11,.06)}
+.student-card{background:var(--card);border:1px solid var(--border);padding:26px;max-width:640px;margin:0 auto}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:16px}
+.card-avatar{width:50px;height:50px;background:linear-gradient(135deg,var(--accent),#f97316);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#000;flex-shrink:0}
+.card-name{font-family:'Playfair Display',serif;font-size:21px;color:#fff;margin-bottom:3px}
+.card-id{font-size:10px;color:var(--muted);letter-spacing:1px}
+.card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+.card-field{display:flex;flex-direction:column;gap:4px}
+.field-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.field-val{font-size:15px;font-weight:600}
+.field-val.acc{color:var(--accent)}
+.card-dept-banner{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.dept-banner-sub{font-size:10px;color:var(--muted)}
+.dept-banner-name{font-size:14px;font-weight:600;color:var(--accent2)}
+.pref-track{display:flex;gap:6px;align-items:center;margin-top:14px}
+.pref-dot{width:28px;height:28px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted)}
+.pref-dot.got{background:rgba(245,158,11,.15);border-color:var(--accent);color:var(--accent)}
+.pref-track-label{font-size:10px;color:var(--muted);margin-left:8px}
+.not-found{text-align:center;padding:44px 0;color:var(--muted)}
+
+/* dept */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:24px}
+.dept-card{background:var(--card);border:1px solid var(--border);padding:20px;cursor:pointer;transition:border-color .2s,transform .2s}
+.dept-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dept-card.expanded{border-color:var(--accent2)}
+.dept-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.dept-card-id{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;line-height:1;margin-bottom:3px}
+.dept-card-name{font-size:10px;color:var(--muted);letter-spacing:.3px;line-height:1.5;max-width:150px}
+.fill-pct{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;text-align:right;line-height:1}
+.fill-label-sm{font-size:9px;color:var(--muted);text-align:right;letter-spacing:1px;text-transform:uppercase}
+.seat-bar{height:3px;background:var(--border);margin-bottom:12px;overflow:hidden}
+.seat-bar-fill{height:100%;transition:width .8s cubic-bezier(.16,1,.3,1)}
+.seat-numbers{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:14px}
+.cat-bd{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.cb-slot{display:flex;flex-direction:column;gap:2px}
+.cb-slot-label{font-size:8px;color:var(--muted);letter-spacing:.5px}
+.cb-slot-used{font-size:12px;font-weight:600}
+.cb-slot-total{font-size:9px;color:var(--muted)}
+.cb-bar{height:2px;background:var(--border);margin-top:2px}
+.cb-bar-fill{height:100%}
+.dept-detail-panel{background:var(--card);border:1px solid var(--border2);padding:26px;margin-bottom:18px;animation:fadeUp .3s ease}
+.dept-detail-panel h3{font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.detail-meta{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+.detail-meta-item{display:flex;flex-direction:column;gap:2px}
+.detail-meta-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
+.detail-meta-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* export */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;max-width:820px;margin-bottom:24px}
+.export-card{background:var(--card);border:1px solid var(--border);padding:22px;cursor:pointer;transition:border-color .2s}
+.export-card:hover{border-color:var(--accent)}
+
+@media(max-width:600px){
+  main{padding:16px}
+  .card-grid{grid-template-columns:1fr}
+  .dept-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .ph-inner{padding:18px 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow glow1"></div>
+<div class="bg-glow glow2"></div>
+
+<!-- UPLOAD -->
+<div id="uploadScreen">
+  <div class="upload-logo">WBJEE &nbsp;·&nbsp; <span>Counselling Portal</span></div>
+  <h1 class="upload-headline">Upload Your<br><em>Counselling Data</em></h1>
+  <p class="upload-sub">Upload students and departments CSV files — the seat allocation algorithm runs instantly in your browser. No data leaves your device.</p>
+
+  <div class="upload-cards">
+    <label class="upload-card" id="studentsCard">
+      <input type="file" id="studentsFile" accept=".csv" onchange="handleFile('students',this)">
+      <div class="upload-card-icon">👨‍🎓</div>
+      <div class="upload-card-title">Students CSV</div>
+      <div class="upload-card-sub">Student_ID · Name · Category · WBJEE_Rank · WBJEE_Marks · Pref_1 · Pref_2 · Pref_3</div>
+      <div class="upload-card-fname" id="studentsName">Click or drag to upload</div>
+    </label>
+    <label class="upload-card" id="deptsCard">
+      <input type="file" id="deptsFile" accept=".csv" onchange="handleFile('depts',this)">
+      <div class="upload-card-icon">🏛️</div>
+      <div class="upload-card-title">Departments CSV</div>
+      <div class="upload-card-sub">Dept_ID · Department_Name · Total_Seats · GEN_Seats · SC_Seats · ST_Seats · OBC_A_Seats · OBC_B_Seats · Min_WBJEE_Marks</div>
+      <div class="upload-card-fname" id="deptsName">Click or drag to upload</div>
+    </label>
+  </div>
+
+  <div id="errorBanner" class="error-banner" style="display:none"></div>
+  <button class="run-btn" id="runBtn" onclick="runAllocation()" disabled>⚡ Run Seat Allocation</button>
+  <p class="upload-hint">100% client-side · no server · no data upload · works offline after load</p>
+
+  <div class="req-box">
+    <h4>Required Column Names</h4>
+    <div class="req-cols-grid">
+      <div>
+        <div class="req-group-title">Students CSV</div>
+        <div class="col-pills"><span class="col-pill">Student_ID</span><span class="col-pill">Name</span><span class="col-pill">Category</span><span class="col-pill">WBJEE_Rank</span><span class="col-pill">WBJEE_Marks</span><span class="col-pill">Pref_1</span><span class="col-pill">Pref_2</span><span class="col-pill">Pref_3</span></div>
+      </div>
+      <div>
+        <div class="req-group-title">Departments CSV</div>
+        <div class="col-pills"><span class="col-pill">Dept_ID</span><span class="col-pill">Department_Name</span><span class="col-pill">Total_Seats</span><span class="col-pill">GEN_Seats</span><span class="col-pill">SC_Seats</span><span class="col-pill">ST_Seats</span><span class="col-pill">OBC_A_Seats</span><span class="col-pill">OBC_B_Seats</span><span class="col-pill">Min_WBJEE_Marks</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROCESSING -->
+<div id="processingScreen" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px">
+  <div class="spinner"></div>
+  <div class="proc-msg" id="procMsg">Parsing files…</div>
+</div>
+
+<!-- PORTAL -->
+<div id="portal" style="display:none">
+  <header class="portal-header">
+    <div class="ph-inner">
+      <div class="ph-grid"></div>
+      <div class="ph-top">
+        <div>
+          <div class="portal-brand">WBJEE <span>Counselling</span></div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:4px">SEAT ALLOCATION RESULTS · ROUND 1</div>
+        </div>
+        <div class="ph-badges">
+          <div class="round-badge">ROUND 1</div>
+          <button class="reset-btn" onclick="resetPortal()">↩ New Upload</button>
+        </div>
+      </div>
+      <div class="ph-stats" id="phStats"></div>
+    </div>
+  </header>
+
+  <nav class="nav-wrap">
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+      <button class="tab-btn" onclick="showTab('search',this)">🔍 Student Search</button>
+      <button class="tab-btn" onclick="showTab('merit',this)">📋 Merit List</button>
+      <button class="tab-btn" onclick="showTab('depts',this)">🏛 Departments</button>
+      <button class="tab-btn" onclick="showTab('category',this)">📌 Category View</button>
+      <button class="tab-btn" onclick="showTab('export',this)">💾 Export</button>
+    </div>
+  </nav>
+
+  <main>
+    <div id="tab-dashboard" class="section active"></div>
+    <div id="tab-search"    class="section"></div>
+    <div id="tab-merit"     class="section"></div>
+    <div id="tab-depts"     class="section"></div>
+    <div id="tab-category"  class="section"></div>
+    <div id="tab-export"    class="section"></div>
+  </main>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+var S=null,D=null,RESULTS=[],DMAP={},DC={},CC={GEN:"#64748b",SC:"#3b82f6",ST:"#10b981","OBC-A":"#8b5cf6","OBC-B":"#ec4899"};
+var PAL=["#f59e0b","#3b82f6","#10b981","#8b5cf6","#ec4899","#06b6d4","#f97316","#84cc16","#e11d48","#0ea5e9"];
+var mSort={key:"WBJEE_Rank",dir:1},mPage=1,PS=20;
+
+// ── CSV PARSE ──────────────────────────────────────────
+function parseCSV(t){
+  var lines=t.replace(/\r\n/g,"\n").replace(/\r/g,"\n").trim().split("\n");
+  if(lines.length<2)return[];
+  var hdrs=lines[0].split(",").map(function(h){return h.trim().replace(/^"|"$/g,"")});
+  return lines.slice(1).filter(function(l){return l.trim()}).map(function(line){
+    var vals=[],cur="",inQ=false;
+    for(var i=0;i<line.length;i++){var ch=line[i];if(ch==='"'){inQ=!inQ;continue}if(ch===','&&!inQ){vals.push(cur.trim());cur=""}else cur+=ch}
+    vals.push(cur.trim());
+    var obj={};hdrs.forEach(function(h,i){obj[h]=(vals[i]!==undefined?vals[i].replace(/^"|"$/g,""):"")}); return obj;
+  });
+}
+
+// ── FILE UPLOAD ────────────────────────────────────────
+function handleFile(type,inp){
+  var file=inp.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var rows=parseCSV(e.target.result);
+    if(type==='students'){S=rows;document.getElementById('studentsName').textContent='✓ '+file.name+' ('+rows.length+' rows)';document.getElementById('studentsCard').classList.add('done')}
+    else{D=rows;document.getElementById('deptsName').textContent='✓ '+file.name+' ('+rows.length+' rows)';document.getElementById('deptsCard').classList.add('done')}
+    document.getElementById('runBtn').disabled=!(S&&D);
+    document.getElementById('errorBanner').style.display='none';
+  };r.readAsText(file);
+}
+
+// ── VALIDATE ───────────────────────────────────────────
+function validate(){
+  var sr=["Student_ID","Name","Category","WBJEE_Rank","WBJEE_Marks","Pref_1"],dr=["Dept_ID","Department_Name","Total_Seats","GEN_Seats","SC_Seats","ST_Seats","OBC_A_Seats","OBC_B_Seats","Min_WBJEE_Marks"];
+  if(!S.length)return"Students CSV has no data rows.";
+  if(!D.length)return"Departments CSV has no data rows.";
+  var sm=sr.filter(function(c){return!(c in S[0])});if(sm.length)return"Students CSV missing: "+sm.join(", ");
+  var dm=dr.filter(function(c){return!(c in D[0])});if(dm.length)return"Departments CSV missing: "+dm.join(", ");
+  return null;
+}
+
+// ── ALLOCATION ─────────────────────────────────────────
+function getPrefCols(row){var p=[];for(var i=1;i<=10;i++){var v=row["Pref_"+i];if(v&&v.trim())p.push(v.trim())}return p}
+
+function runAllocation(){
+  var err=validate();
+  if(err){document.getElementById('errorBanner').textContent="❌ "+err;document.getElementById('errorBanner').style.display='block';return}
+  document.getElementById('uploadScreen').style.display='none';
+  document.getElementById('processingScreen').style.display='flex';
+  setTimeout(function(){
+    setMsg("Building department map…");
+    setTimeout(function(){
+      DMAP={};DC={};
+      D.forEach(function(d,i){DMAP[d.Dept_ID]=d;DC[d.Dept_ID]=PAL[i%PAL.length]});
+      var pool={};
+      D.forEach(function(d){pool[d.Dept_ID]={GEN:parseInt(d.GEN_Seats)||0,SC:parseInt(d.SC_Seats)||0,ST:parseInt(d.ST_Seats)||0,"OBC-A":parseInt(d.OBC_A_Seats)||0,"OBC-B":parseInt(d.OBC_B_Seats)||0}});
+      var minM={};D.forEach(function(d){minM[d.Dept_ID]=parseFloat(d.Min_WBJEE_Marks)||0});
+      setMsg("Sorting students by rank…");
+      var sorted=[].concat(S).sort(function(a,b){return parseInt(a.WBJEE_Rank)-parseInt(b.WBJEE_Rank)});
+      setMsg("Running allocation algorithm…");
+      RESULTS=sorted.map(function(s){
+        var cat=(s.Category||"").trim().toUpperCase(),rank=parseInt(s.WBJEE_Rank)||0,marks=parseFloat(s.WBJEE_Marks)||0,prefs=getPrefCols(s);
+        var alloc=false,dept=null,prefNo=null,remarks="";
+        for(var pi=0;pi<prefs.length;pi++){
+          var d=prefs[pi];if(!pool[d])continue;if(marks<(minM[d]||0))continue;
+          if((pool[d][cat]||0)>0){pool[d][cat]--;alloc=true;dept=d;prefNo=pi+1;remarks="Category seat ("+cat+")";break}
+          if(cat!=="GEN"&&(pool[d]["GEN"]||0)>0){pool[d]["GEN"]--;alloc=true;dept=d;prefNo=pi+1;remarks="Open/GEN seat (reserved candidate on merit)";break}
+        }
+        return{Student_ID:s.Student_ID,Name:s.Name,Category:cat,WBJEE_Rank:rank,WBJEE_Marks:marks,Allocated_Dept:dept,Allocated_Dept_Name:dept?(DMAP[dept]&&DMAP[dept].Department_Name||dept):null,Preference_Number:prefNo,Status:alloc?"Allocated":"Unallocated",Remarks:alloc?remarks:"No seat available in any preference"};
+      });
+      setMsg("Rendering portal…");
+      setTimeout(function(){
+        document.getElementById('processingScreen').style.display='none';
+        document.getElementById('portal').style.display='block';
+        buildPortal();
+      },200);
+    },50);
+  },50);
+}
+
+function setMsg(m){document.getElementById('procMsg').textContent=m}
+
+// ── PORTAL ─────────────────────────────────────────────
+function buildPortal(){buildHeader();buildDashboard();buildSearch();buildMerit();buildDepts();buildCatView();buildExport()}
+
+function buildHeader(){
+  var alloc=RESULTS.filter(function(r){return r.Status==="Allocated"}).length,total=RESULTS.length;
+  var avgM=total?(RESULTS.reduce(function(s,r){return s+r.WBJEE_Marks},0)/total).toFixed(1):0;
+  var depts=Object.keys(DMAP).length,fillPct=total?Math.round(alloc/total*100):0;
+  document.getElementById('phStats').innerHTML=[
+    {val:total,label:"Students"},{val:alloc,label:"Allocated"},{val:total-alloc,label:"Unallocated"},
+    {val:depts,label:"Departments"},{val:fillPct+"%",label:"Fill Rate"},{val:avgM,label:"Avg Marks"},
+  ].map(function(s){return'<div class="pstat"><span class="pstat-val">'+s.val+'</span><span class="pstat-label">'+s.label+'</span></div>'}).join('');
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function buildDashboard(){
+  var el=document.getElementById('tab-dashboard');
+  var alloc=RESULTS.filter(function(r){return r.Status==="Allocated"});
+  var unalloc=RESULTS.filter(function(r){return r.Status!=="Allocated"});
+  var dC={},catC={},prefC={};
+  alloc.forEach(function(r){dC[r.Allocated_Dept]=(dC[r.Allocated_Dept]||0)+1;prefC[r.Preference_Number]=(prefC[r.Preference_Number]||0)+1});
+  RESULTS.forEach(function(r){catC[r.Category]=(catC[r.Category]||0)+1});
+  var topD=Object.entries(dC).sort(function(a,b){return b[1]-a[1]})[0]||["—",0];
+  var avgM=alloc.length?(alloc.reduce(function(s,r){return s+r.WBJEE_Marks},0)/alloc.length).toFixed(1):0;
+  var bestR=alloc.length?Math.min.apply(null,alloc.map(function(r){return r.WBJEE_Rank})):"—";
+  var bStu=alloc.find(function(r){return r.WBJEE_Rank===bestR});
+  var maxD=Math.max.apply(null,Object.values(dC).concat([1]));
+  var maxP=Math.max.apply(null,Object.values(prefC).concat([1]));
+  var top10=[].concat(alloc).sort(function(a,b){return b.WBJEE_Marks-a.WBJEE_Marks}).slice(0,10);
+
+  el.innerHTML='<h2 class="section-title" style="margin-top:6px">Allocation Overview</h2>'
+    +'<p class="section-sub">Round 1 results based on uploaded data</p>'
+    +'<div class="stat-grid">'
+    +[
+      {val:RESULTS.length,label:"Total Students",sub:"from uploaded CSV"},
+      {val:alloc.length,label:"Allocated",sub:Math.round(alloc.length/(RESULTS.length||1)*100)+"% fill rate"},
+      {val:unalloc.length,label:"Unallocated",sub:"no seat found"},
+      {val:Object.keys(DMAP).length,label:"Departments",sub:"in dataset"},
+      {val:avgM,label:"Avg Marks",sub:"allocated students"},
+      {val:"#"+bestR,label:"Best Rank",sub:bStu?bStu.Name:"—"},
+      {val:topD[0],label:"Most Popular",sub:topD[1]+" students"},
+      {val:(prefC[1]||0)+"/"+alloc.length,label:"Got Pref 1",sub:"first choice satisfied"},
+    ].map(function(s){return'<div class="stat-card"><div class="stat-val">'+s.val+'</div><div class="stat-label">'+s.label+'</div><div class="stat-sub">'+s.sub+'</div></div>'}).join('')
+    +'</div>'
+    +'<div class="chart-grid">'
+    +'<div class="chart-card"><div class="chart-title">Department-wise Allocation</div><div class="bar-chart">'
+    +Object.entries(dC).sort(function(a,b){return b[1]-a[1]}).map(function(e){
+      return'<div class="bar-row"><span class="bar-row-label">'+e[0]+'</span><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(e[1]/maxD*100)+'%;background:'+(DC[e[0]]||'#888')+'">'+e[1]+'</div></div><span class="bar-count">'+e[1]+'</span></div>';
+    }).join('')+'</div></div>'
+    +'<div class="chart-card"><div class="chart-title">Category Distribution</div>'
+    +'<div class="donut-wrap"><canvas id="donutC" width="110" height="110" style="flex-shrink:0"></canvas><div id="donutL"></div></div></div>'
+    +'<div class="chart-card"><div class="chart-title">Preference Satisfaction</div>'
+    +'<div class="pref-bars">'
+    +[1,2,3,4,5].map(function(p){var c=prefC[p]||0;return'<div class="pref-col"><div class="pref-col-count">'+c+'</div><div class="pref-bar-vert" style="height:'+(c?Math.round(c/maxP*100):2)+'%;background:'+(p===1?'var(--green)':p===2?'var(--accent)':'var(--border2)')+'"></div><div class="pref-col-label">P'+p+'</div></div>'}).join('')
+    +'</div></div>'
+    +'<div class="chart-card"><div class="chart-title">Top 10 — Highest Marks</div><div style="display:flex;flex-direction:column;gap:8px">'
+    +top10.map(function(s,i){return'<div style="display:flex;align-items:center;gap:9px;font-size:11px"><span style="width:16px;text-align:right;color:var(--muted);font-size:10px">'+(i+1)+'</span><span style="flex:1">'+s.Name+'</span>'+dtag(s.Allocated_Dept)+'<span style="color:var(--accent);font-weight:700">'+s.WBJEE_Marks+'</span></div>'}).join('')
+    +'</div></div></div>';
+  drawDonut(catC);
+}
+
+function drawDonut(catC){
+  var canvas=document.getElementById('donutC');if(!canvas)return;
+  var ctx=canvas.getContext('2d'),total=Object.values(catC).reduce(function(a,b){return a+b},0);
+  var entries=Object.entries(catC).sort(function(a,b){return b[1]-a[1]});
+  var angle=-Math.PI/2,cx=55,cy=55,r=48,ir=30;
+  entries.forEach(function(e){
+    var slice=(e[1]/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=CC[e[0]]||'#888';ctx.fill();angle+=slice;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,ir,0,2*Math.PI);ctx.fillStyle='#111827';ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 12px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(total,cx,cy-5);ctx.font='8px JetBrains Mono';ctx.fillStyle='#64748b';ctx.fillText('TOTAL',cx,cy+6);
+  document.getElementById('donutL').innerHTML=entries.map(function(e){
+    return'<div class="legend-item"><div class="legend-dot" style="background:'+(CC[e[0]]||'#888')+'"></div><span class="legend-label">'+e[0]+'</span><span class="legend-val" style="color:'+(CC[e[0]]||'#888')+'">'+e[1]+'</span></div>';
+  }).join('');
+}
+
+// ── SEARCH ─────────────────────────────────────────────
+function buildSearch(){
+  document.getElementById('tab-search').innerHTML='<div class="search-hero"><h2>Student Lookup</h2><p>Search by Student ID or name</p><div class="search-row"><input class="search-input" id="si" placeholder="STU001 or student name…" oninput="lsearch()" onkeydown="if(event.key===\'Enter\')dsearch()"><button class="search-btn" onclick="dsearch()">Search</button></div></div><div id="sgst"></div><div id="sres"></div>';
+}
+
+function lsearch(){
+  var q=(document.getElementById('si').value||'').toLowerCase().trim();
+  var box=document.getElementById('sgst');
+  if(q.length<2){box.innerHTML='';return}
+  var hits=RESULTS.filter(function(r){return r.Student_ID.toLowerCase().includes(q)||r.Name.toLowerCase().includes(q)}).slice(0,7);
+  if(!hits.length){box.innerHTML='';return}
+  box.innerHTML='<div class="sugg-wrap">'+hits.map(function(r){
+    return'<div class="sugg-row" onclick="pickS(\''+r.Student_ID+'\')"><span>'+r.Name+' <span style="color:var(--muted);font-size:10px">'+r.Student_ID+'</span></span>'+(r.Allocated_Dept?dtag(r.Allocated_Dept):'<span style="color:var(--red);font-size:10px">Unallocated</span>')+'</div>';
+  }).join('')+'</div>';
+}
+
+function pickS(id){document.getElementById('si').value=id;document.getElementById('sgst').innerHTML='';dsearch()}
+
+function dsearch(){
+  var q=(document.getElementById('si').value||'').toLowerCase().trim();
+  document.getElementById('sgst').innerHTML='';
+  var s=RESULTS.find(function(r){return r.Student_ID.toLowerCase()===q||r.Name.toLowerCase()===q||r.Student_ID.toLowerCase().includes(q)})
+     ||RESULTS.find(function(r){return r.Name.toLowerCase().includes(q)});
+  var el=document.getElementById('sres');
+  if(!s){el.innerHTML='<div class="not-found"><div style="font-size:44px;margin-bottom:12px">🔍</div><p>No student found for "<strong>'+q+'</strong>"</p></div>';return}
+  var ini=s.Name.split(' ').map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();
+  el.innerHTML='<div class="student-card">'
+    +'<div class="card-header"><div style="display:flex;gap:13px;align-items:flex-start"><div class="card-avatar">'+ini+'</div><div><div class="card-name">'+s.Name+'</div><div class="card-id">'+s.Student_ID+' · WBJEE Counselling</div></div></div>'
+    +'<span class="'+(s.Status==='Allocated'?'sa':'su')+'">'+s.Status.toUpperCase()+'</span></div>'
+    +'<div class="card-grid">'
+    +'<div class="card-field"><div class="field-label">WBJEE Rank</div><div class="field-val acc">#'+s.WBJEE_Rank+'</div></div>'
+    +'<div class="card-field"><div class="field-label">WBJEE Marks</div><div class="field-val acc">'+s.WBJEE_Marks+'</div></div>'
+    +'<div class="card-field"><div class="field-label">Category</div><div class="field-val"><span class="cat-badge cat-'+s.Category+'">'+s.Category+'</span></div></div>'
+    +'<div class="card-field"><div class="field-label">Preference No.</div><div class="field-val">'+(s.Preference_Number?'Choice '+s.Preference_Number:'—')+'</div></div>'
+    +'</div>'
+    +(s.Status==='Allocated'?'<div class="card-dept-banner"><span style="font-size:22px">🎓</span><div><div class="dept-banner-sub">Allocated Department</div><div class="dept-banner-name">'+s.Allocated_Dept_Name+'</div></div>'+dtag(s.Allocated_Dept,'margin-left:auto')+'</div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+s.Remarks+'</div>'
+      :'<div style="color:var(--red);font-size:13px;padding:12px 0">No seat could be allotted in any preference.</div>')
+    +'<div class="pref-track">'
+    +[1,2,3,4,5].map(function(n){return'<div class="pref-dot'+(n===s.Preference_Number?' got':'')+'">'+ n+'</div>'}).join('')
+    +'<span class="pref-track-label">'+(s.Preference_Number?'Got preference '+s.Preference_Number:'Not allocated')+'</span>'
+    +'</div></div>';
+}
+
+// ── MERIT ──────────────────────────────────────────────
+function buildMerit(){
+  var depts=Object.keys(DMAP),cats=[...new Set(RESULTS.map(function(r){return r.Category}))].sort();
+  document.getElementById('tab-merit').innerHTML='<h2 class="section-title">Merit List</h2><p class="section-sub">All students · click column headers to sort</p>'
+    +'<div class="controls-bar">'
+    +'<span class="filter-label">Dept</span><select class="filter-select" id="mDF" onchange="rMerit()"><option value="">All Depts</option>'+depts.map(function(d){return'<option>'+d+'</option>'}).join('')+'</select>'
+    +'<span class="filter-label">Cat</span><select class="filter-select" id="mCF" onchange="rMerit()"><option value="">All Cats</option>'+cats.map(function(c){return'<option>'+c+'</option>'}).join('')+'</select>'
+    +'<span class="filter-label">Status</span><select class="filter-select" id="mSF" onchange="rMerit()"><option value="">All</option><option>Allocated</option><option>Unallocated</option></select>'
+    +'<input class="filter-select" id="mNF" placeholder="Name search…" oninput="rMerit()" style="min-width:140px">'
+    +'<span class="results-count">Showing <span id="mCnt">—</span></span></div>'
+    +'<div class="table-wrap"><table><thead><tr>'
+    +'<th onclick="sortM(\'sno\')">#</th><th onclick="sortM(\'Student_ID\')">ID</th><th onclick="sortM(\'Name\')">Name</th>'
+    +'<th onclick="sortM(\'Category\')">Category</th><th onclick="sortM(\'WBJEE_Rank\')">Rank</th>'
+    +'<th onclick="sortM(\'WBJEE_Marks\')">Marks</th><th onclick="sortM(\'Allocated_Dept\')">Dept</th>'
+    +'<th onclick="sortM(\'Preference_Number\')">Pref</th><th>Status</th><th>Seat Type</th>'
+    +'</tr></thead><tbody id="mBody"></tbody></table></div>'
+    +'<div class="pagination" id="mPager"></div>';
+  rMerit();
+}
+
+function getMF(){
+  var dept=document.getElementById('mDF').value||'',cat=document.getElementById('mCF').value||'',stat=document.getElementById('mSF').value||'',name=(document.getElementById('mNF').value||'').toLowerCase();
+  var data=[].concat(RESULTS);
+  if(dept)data=data.filter(function(r){return r.Allocated_Dept===dept});
+  if(cat)data=data.filter(function(r){return r.Category===cat});
+  if(stat)data=data.filter(function(r){return r.Status===stat});
+  if(name)data=data.filter(function(r){return r.Name.toLowerCase().includes(name)||r.Student_ID.toLowerCase().includes(name)});
+  data.sort(function(a,b){var va=a[mSort.key],vb=b[mSort.key];if(va===null||va===undefined)va='';if(vb===null||vb===undefined)vb='';if(typeof va==='string'){va=va.toLowerCase();vb=vb.toLowerCase()}return(va<vb?-1:va>vb?1:0)*mSort.dir});
+  return data;
+}
+
+function rMerit(){
+  var data=getMF(),pages=Math.ceil(data.length/PS)||1;
+  mPage=Math.min(mPage,pages);
+  var slice=data.slice((mPage-1)*PS,mPage*PS),off=(mPage-1)*PS;
+  var maxM=Math.max.apply(null,RESULTS.map(function(r){return r.WBJEE_Marks}).concat([1]));
+  var minM=Math.min.apply(null,RESULTS.map(function(r){return r.WBJEE_Marks}).concat([0]));
+  var cnt=document.getElementById('mCnt');if(cnt)cnt.textContent=data.length;
+  var body=document.getElementById('mBody');if(!body)return;
+  body.innerHTML=slice.map(function(r,i){
+    var sno=off+i+1,bw=Math.round((r.WBJEE_Marks-minM)/(maxM-minM||1)*100);
+    return'<tr><td style="color:var(--muted);font-size:11px">'+sno+'</td><td style="font-size:11px;color:var(--muted)">'+r.Student_ID+'</td><td style="font-weight:600">'+r.Name+'</td>'
+      +'<td><span class="cat-badge cat-'+r.Category+'">'+r.Category+'</span></td>'
+      +'<td style="color:var(--accent);font-weight:700">'+r.WBJEE_Rank+'</td>'
+      +'<td><div class="marks-bar-wrap"><span style="min-width:36px;font-weight:600">'+r.WBJEE_Marks+'</span><div class="marks-bar"><div class="marks-bar-fill" style="width:'+bw+'%"></div></div></div></td>'
+      +'<td>'+(r.Allocated_Dept?dtag(r.Allocated_Dept):'<span style="color:var(--muted)">—</span>')+'</td>'
+      +'<td style="color:var(--muted);font-size:11px">'+(r.Preference_Number?'P'+r.Preference_Number:'—')+'</td>'
+      +'<td><span class="'+(r.Status==='Allocated'?'sa':'su')+'">'+(r.Status==='Allocated'?'✓ Alloc':'✗ None')+'</span></td>'
+      +'<td style="font-size:10px;color:'+(r.Remarks&&r.Remarks.includes('Open/GEN')?'#c084fc':'var(--muted)')+'">'+( r.Remarks&&r.Remarks.includes('Open/GEN')?'Open/GEN':'Reserved')+'</td>'
+      +'</tr>';
+  }).join('');
+  var pager=document.getElementById('mPager');if(!pager)return;
+  var ph='<button class="page-btn" onclick="cpg(-1)" '+(mPage===1?'disabled':'')+'>← Prev</button>';
+  for(var p=1;p<=pages;p++){if(p===1||p===pages||Math.abs(p-mPage)<=1)ph+='<button class="page-btn '+(p===mPage?'active':'')+'" onclick="gpg('+p+')">'+p+'</button>';else if(Math.abs(p-mPage)===2)ph+='<span style="color:var(--muted);padding:8px 4px">…</span>'}
+  ph+='<button class="page-btn" onclick="cpg(1)" '+(mPage>=pages?'disabled':'')+'>Next →</button>';
+  pager.innerHTML=ph;
+}
+
+function sortM(k){mSort=mSort.key===k?{key:k,dir:mSort.dir*-1}:{key:k,dir:1};mPage=1;rMerit()}
+function cpg(d){mPage+=d;rMerit()}
+function gpg(p){mPage=p;rMerit()}
+
+// ── DEPTS ──────────────────────────────────────────────
+function buildDepts(){
+  var el=document.getElementById('tab-depts');
+  el.innerHTML='<h2 class="section-title">Department Status</h2><p class="section-sub">Seat fill rates and category breakdown · click a card to expand</p><div class="dept-grid" id="dG"></div><div id="dDP"></div>';
+  var dA={},dCA={};
+  RESULTS.filter(function(r){return r.Status==='Allocated'}).forEach(function(r){
+    dA[r.Allocated_Dept]=(dA[r.Allocated_Dept]||0)+1;
+    if(!dCA[r.Allocated_Dept])dCA[r.Allocated_Dept]={GEN:0,SC:0,ST:0,"OBC-A":0,"OBC-B":0};
+    dCA[r.Allocated_Dept][r.Category]=(dCA[r.Allocated_Dept][r.Category]||0)+1;
+  });
+  document.getElementById('dG').innerHTML=D.map(function(d){
+    var id=d.Dept_ID,total=parseInt(d.Total_Seats)||0,alloc=dA[id]||0,pct=total?Math.round(alloc/total*100):0,color=DC[id]||'#888';
+    var cA=dCA[id]||{GEN:0,SC:0,ST:0,"OBC-A":0,"OBC-B":0};
+    var cats=[["GEN",parseInt(d.GEN_Seats)||0],["SC",parseInt(d.SC_Seats)||0],["ST",parseInt(d.ST_Seats)||0],["OBC-A",parseInt(d.OBC_A_Seats)||0],["OBC-B",parseInt(d.OBC_B_Seats)||0]];
+    return'<div class="dept-card" id="dc-'+id+'" onclick="tDD(\''+id+'\')">'
+      +'<div class="dept-card-top"><div><div class="dept-card-id">'+id+'</div><div class="dept-card-name">'+d.Department_Name+'</div></div>'
+      +'<div><div class="fill-pct" style="color:'+color+'">'+pct+'%</div><div class="fill-label-sm">filled</div></div></div>'
+      +'<div class="seat-bar"><div class="seat-bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'
+      +'<div class="seat-numbers"><span>'+alloc+' allocated</span><span>'+(total-alloc)+' remaining</span><span>'+total+' total</span></div>'
+      +'<div class="cat-bd">'+cats.map(function(c){var ca=cA[c[0]]||0,cs=c[1]||1;return'<div class="cb-slot"><div class="cb-slot-label">'+c[0]+'</div><div class="cb-slot-used" style="color:'+(CC[c[0]]||'#888')+'">'+ca+'</div><div class="cb-slot-total">/'+c[1]+'</div><div class="cb-bar"><div class="cb-bar-fill" style="width:'+Math.round(ca/cs*100)+'%;background:'+(CC[c[0]]||'#888')+'"></div></div></div>'}).join('')
+      +'</div></div>';
+  }).join('');
+}
+
+function tDD(id){
+  var panel=document.getElementById('dDP'),card=document.getElementById('dc-'+id);
+  document.querySelectorAll('.dept-card').forEach(function(c){c.classList.remove('expanded')});
+  if(panel.dataset.open===id){panel.innerHTML='';delete panel.dataset.open;return}
+  panel.dataset.open=id;card.classList.add('expanded');
+  var d=DMAP[id],students=RESULTS.filter(function(r){return r.Allocated_Dept===id&&r.Status==='Allocated'}).sort(function(a,b){return a.WBJEE_Rank-b.WBJEE_Rank});
+  var oR=students.length?students[0].WBJEE_Rank:'—',cR=students.length?students[students.length-1].WBJEE_Rank:'—';
+  var avgM=students.length?(students.reduce(function(s,r){return s+r.WBJEE_Marks},0)/students.length).toFixed(1):'—';
+  panel.innerHTML='<div class="dept-detail-panel">'
+    +'<h3>'+(d?d.Department_Name:id)+' '+dtag(id)+'</h3>'
+    +'<div class="detail-meta">'
+    +[{val:students.length,label:"Allocated",col:DC[id]||'#888'},{val:(parseInt(d&&d.Total_Seats||0)-students.length),label:"Remaining",col:'var(--muted)'},{val:'#'+oR,label:"Opening Rank",col:'var(--text)'},{val:'#'+cR,label:"Closing Rank",col:'var(--text)'},{val:avgM,label:"Avg Marks",col:'var(--accent)'}]
+    .map(function(m){return'<div class="detail-meta-item"><div class="detail-meta-val" style="color:'+m.col+'">'+m.val+'</div><div class="detail-meta-label">'+m.label+'</div></div>'}).join('')
+    +'</div>'
+    +'<div class="table-wrap"><table><thead><tr><th>#</th><th>ID</th><th>Name</th><th>Category</th><th>Rank</th><th>Marks</th><th>Seat Type</th></tr></thead><tbody>'
+    +students.map(function(s,i){return'<tr><td style="color:var(--muted);font-size:11px">'+(i+1)+'</td><td style="font-size:11px;color:var(--muted)">'+s.Student_ID+'</td><td style="font-weight:600">'+s.Name+'</td><td><span class="cat-badge cat-'+s.Category+'">'+s.Category+'</span></td><td style="color:var(--accent);font-weight:700">'+s.WBJEE_Rank+'</td><td>'+s.WBJEE_Marks+'</td><td style="font-size:10px;color:'+(s.Remarks&&s.Remarks.includes('Open/GEN')?'#c084fc':'var(--muted)')+'">'+( s.Remarks&&s.Remarks.includes('Open/GEN')?'Open/GEN':'Reserved')+'</td></tr>'}).join('')
+    +'</tbody></table></div></div>';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── CATEGORY VIEW ──────────────────────────────────────
+function buildCatView(){
+  var cats=[...new Set(RESULTS.map(function(r){return r.Category}))].sort();
+  document.getElementById('tab-category').innerHTML='<h2 class="section-title">Category-wise View</h2><p class="section-sub">Filter by reservation category</p>'
+    +'<div class="controls-bar"><span class="filter-label">Category</span><select class="filter-select" id="catF" onchange="rCat()">'+cats.map(function(c){return'<option>'+c+'</option>'}).join('')+'</select><span class="results-count">Showing <span id="catCnt">—</span> students</span></div>'
+    +'<div class="table-wrap"><table><thead><tr><th>#</th><th>Student ID</th><th>Name</th><th>Rank</th><th>Marks</th><th>Department</th><th>Pref</th><th>Status</th><th>Seat Type</th></tr></thead><tbody id="catBody"></tbody></table></div>';
+  rCat();
+}
+
+function rCat(){
+  var cat=document.getElementById('catF').value||'';
+  var data=RESULTS.filter(function(r){return r.Category===cat}).sort(function(a,b){return a.WBJEE_Rank-b.WBJEE_Rank});
+  var cnt=document.getElementById('catCnt');if(cnt)cnt.textContent=data.length;
+  var body=document.getElementById('catBody');if(!body)return;
+  body.innerHTML=data.map(function(r,i){
+    return'<tr><td style="color:var(--muted);font-size:11px">'+(i+1)+'</td><td style="font-size:11px;color:var(--muted)">'+r.Student_ID+'</td><td style="font-weight:600">'+r.Name+'</td><td style="color:var(--accent);font-weight:700">'+r.WBJEE_Rank+'</td><td>'+r.WBJEE_Marks+'</td>'
+      +'<td>'+(r.Allocated_Dept?dtag(r.Allocated_Dept):'<span style="color:var(--muted)">—</span>')+'</td>'
+      +'<td style="color:var(--muted)">'+(r.Preference_Number?'P'+r.Preference_Number:'—')+'</td>'
+      +'<td><span class="'+(r.Status==='Allocated'?'sa':'su')+'">'+(r.Status==='Allocated'?'Allocated':'None')+'</span></td>'
+      +'<td style="font-size:10px;color:'+(r.Remarks&&r.Remarks.includes('Open/GEN')?'#c084fc':'var(--muted)')+'">'+( r.Remarks&&r.Remarks.includes('Open/GEN')?'Open/GEN':'Reserved')+'</td></tr>';
+  }).join('');
+}
+
+// ── EXPORT ─────────────────────────────────────────────
+function buildExport(){
+  var total=RESULTS.length,alloc=RESULTS.filter(function(r){return r.Status==='Allocated'}).length;
+  document.getElementById('tab-export').innerHTML='<h2 class="section-title">Export Results</h2><p class="section-sub">Download allocation results as CSV</p>'
+    +'<div class="export-grid">'
+    +[
+      {icon:"📄",title:"Full Results",sub:"All students with status, rank, marks and department",fn:"expFull"},
+      {icon:"✅",title:"Allocated Only",sub:"Only successfully allocated students",fn:"expAlloc"},
+      {icon:"❌",title:"Unallocated Only",sub:"Students who did not receive any seat",fn:"expUnalloc"},
+      {icon:"🏛",title:"Dept-sorted",sub:"All students sorted by allocated department",fn:"expDept"},
+    ].map(function(e){
+      return'<div class="export-card" onclick="'+e.fn+'()"><div style="font-size:32px;margin-bottom:10px">'+e.icon+'</div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px">'+e.title+'</div><div style="font-size:11px;color:var(--muted);line-height:1.6">'+e.sub+'</div><div style="margin-top:12px;font-size:10px;letter-spacing:1.5px;color:var(--accent);font-weight:700">↓ DOWNLOAD CSV</div></div>';
+    }).join('')+'</div>'
+    +'<div style="padding:18px;background:var(--card);border:1px solid var(--border);max-width:480px;font-size:11px;color:var(--muted);line-height:1.9">'
+    +'<div style="font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Summary</div>'
+    +'<div>Total Students: <span style="color:var(--text)">'+total+'</span></div>'
+    +'<div>Allocated: <span style="color:var(--green)">'+alloc+'</span></div>'
+    +'<div>Unallocated: <span style="color:var(--red)">'+(total-alloc)+'</span></div>'
+    +'<div>Departments: <span style="color:var(--text)">'+Object.keys(DMAP).length+'</span></div>'
+    +'</div>';
+}
+
+var ECOLS=["Student_ID","Name","Category","WBJEE_Rank","WBJEE_Marks","Allocated_Dept","Allocated_Dept_Name","Preference_Number","Status","Remarks"];
+function toCSV(rows){var h=ECOLS.join(","),b=rows.map(function(r){return ECOLS.map(function(c){var v=String(r[c]!=null?r[c]:'').replace(/"/g,'""');return v.includes(',')? '"'+v+'"':v}).join(",")}).join("\n");return h+"\n"+b}
+function dlCSV(c,f){var b=new Blob([c],{type:"text/csv"}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f;a.click()}
+function expFull(){dlCSV(toCSV(RESULTS),"wbjee_full_results.csv")}
+function expAlloc(){dlCSV(toCSV(RESULTS.filter(function(r){return r.Status==='Allocated'})),"wbjee_allocated.csv")}
+function expUnalloc(){dlCSV(toCSV(RESULTS.filter(function(r){return r.Status!=='Allocated'})),"wbjee_unallocated.csv")}
+function expDept(){dlCSV(toCSV([].concat(RESULTS).sort(function(a,b){return(a.Allocated_Dept||'zzz').localeCompare(b.Allocated_Dept||'zzz')||a.WBJEE_Rank-b.WBJEE_Rank})),"wbjee_dept_sorted.csv")}
+
+// ── HELPERS ────────────────────────────────────────────
+function dtag(id,extra){var c=DC[id]||'#888';return'<span class="dept-tag" style="color:'+c+';border-color:'+c+'33;background:'+c+'12;'+(extra||'')+'">'+id+'</span>'}
+
+function showTab(id,btn){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='category')rCat();
+}
+
+function resetPortal(){
+  S=null;D=null;RESULTS=[];DMAP={};DC={};
+  document.getElementById('portal').style.display='none';
+  document.getElementById('uploadScreen').style.display='flex';
+  ['studentsCard','deptsCard'].forEach(function(id){document.getElementById(id).classList.remove('done')});
+  document.getElementById('studentsName').textContent='Click or drag to upload';
+  document.getElementById('deptsName').textContent='Click or drag to upload';
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('errorBanner').style.display='none';
+  document.getElementById('studentsFile').value='';
+  document.getElementById('deptsFile').value='';
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',i===0)});
+  document.querySelectorAll('.section').forEach(function(s,i){s.classList.toggle('active',i===0)});
+}
+</script>
+</body>
+</html>
