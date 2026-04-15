@@ -1,0 +1,16 @@
+{
+  "name": "WBJEE Counselling Portal",
+  "short_name": "WBJEE",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#07090f",
+  "theme_color": "#f59e0b",
+  "description": "WBJEE Seat Allocation Tool",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
